@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Register - ZoomClone Plus{% endblock %}
+
+{% block head %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.classList.add('auth-page');
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="glass-card p-5 shadow-3d">
+                <div class="text-center mb-4">
+                    <div class="register-icon mb-3">
+                        <i class="fas fa-rocket fa-3x text-gradient"></i>
+                    </div>
+                    <h2 class="fw-bold mb-2">Join ZoomClone Plus</h2>
+                    <p class="text-secondary">Create your account and start connecting with others</p>
+                </div>
+
+                <form method="POST" class="register-form">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
+                                <label for="username">
+                                    <i class="fas fa-user me-2"></i>Username
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Email Address" required>
+                                <label for="email">
+                                    <i class="fas fa-envelope me-2"></i>Email Address
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                                <label for="password">
+                                    <i class="fas fa-lock me-2"></i>Password
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required>
+                                <label for="confirm_password">
+                                    <i class="fas fa-lock me-2"></i>Confirm Password
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Requirements -->
+                    <div class="password-requirements mb-4 p-3" style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <small class="text-secondary">
+                            <strong>Password Requirements:</strong>
+                        </small>
+                        <ul class="mt-2 mb-0" style="font-size: 0.875rem;">
+                            <li class="text-secondary">At least 6 characters long</li>
+                            <li class="text-secondary">Mix of letters and numbers recommended</li>
+                            <li class="text-secondary">Avoid common passwords</li>
+                        </ul>
+                    </div>
+
+                    <!-- Terms and Conditions -->
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                        <label class="form-check-label text-secondary" for="terms">
+                            I agree to the 
+                            <a href="#" class="text-gradient text-decoration-none">Terms of Service</a> 
+                            and 
+                            <a href="#" class="text-gradient text-decoration-none">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <!-- Marketing Consent -->
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="marketing" name="marketing">
+                        <label class="form-check-label text-secondary" for="marketing">
+                            Send me updates about new features and improvements
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-3d w-100 mb-4">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Create Account
+                    </button>
+                </form>
+
+                <hr class="my-4" style="border-color: rgba(255, 255, 255, 0.1);">
+
+                <div class="text-center">
+                    <p class="text-secondary mb-3">Already have an account?</p>
+                    <a href="{{ url_for('login') }}" class="btn btn-secondary w-100">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Sign In Instead
+                    </a>
+                </div>
+
+                <!-- Features Preview -->
+                <div class="features-preview mt-4">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="feature-preview-item p-2">
+                                <i class="fas fa-video fa-2x text-gradient mb-2"></i>
+                                <small class="text-secondary d-block">HD Video</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="feature-preview-item p-2">
+                                <i class="fas fa-comments fa-2x text-gradient mb-2"></i>
+                                <small class="text-secondary d-block">Real-time Chat</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="feature-preview-item p-2">
+                                <i class="fas fa-desktop fa-2x text-gradient mb-2"></i>
+                                <small class="text-secondary d-block">Screen Share</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<style>
+.register-form {
+    position: relative;
+}
+
+.register-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+    animation: float 6s ease-in-out infinite;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.password-requirements ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.password-requirements li:before {
+    content: "✓";
+    color: var(--secondary-color);
+    margin-right: 0.5rem;
+}
+
+.feature-preview-item {
+    transition: transform 0.3s ease;
+}
+
+.feature-preview-item:hover {
+    transform: translateY(-5px);
+}
+
+.min-vh-100 {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+
+{% block title %}{{ meeting.title }} - ZoomClone Plus{% endblock %}
+
+{% block head %}
+<meta name="meeting-id" content="{{ meeting.meeting_id }}">
+<meta name="username" content="{{ current_user.username }}">
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.classList.add('meeting-page');
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="meeting-container" data-meeting-id="{{ meeting.meeting_id }}" data-username="{{ current_user.username }}">
+    <!-- Meeting Header -->
+    <div class="meeting-header" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 1rem;">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="meeting-info">
+                        <h5 class="fw-bold mb-1 text-white">{{ meeting.title }}</h5>
+                        <small class="text-secondary">
+                            Meeting ID: <span class="text-primary fw-semibold">{{ meeting.meeting_id }}</span>
+                            <button class="btn btn-sm ms-2" id="copyLinkBtn" data-tooltip="Copy meeting link">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="meeting-meta">
+                        <small class="text-secondary">
+                            <i class="fas fa-users me-1"></i>
+                            <span id="participantCount">{{ participants|length }}</span> participants
+                        </small>
+                        <small class="text-secondary ms-3">
+                            <i class="fas fa-clock me-1"></i>
+                            <span id="meetingTimer">00:00</span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Grid -->
+    <div class="video-grid" id="videoGrid">
+        <!-- Video tiles will be dynamically added here -->
+        <div class="video-tile" id="localVideo">
+            <video class="video-element" autoplay muted playsinline></video>
+            <div class="video-overlay">
+                <div class="participant-name">{{ current_user.username }} (You)</div>
+                <div class="participant-status">
+                    <div class="status-icon" id="status-{{ current_user.username }}">
+                        <i class="fas fa-microphone"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Render existing participants -->
+        {% for participant, user in participants %}
+            {% if user.id != current_user.id %}
+            <div class="video-tile" id="video-{{ user.username }}">
+                <div class="video-element participant-video" data-username="{{ user.username }}">
+                    <div class="video-placeholder">
+                        <div class="participant-avatar">
+                            {{ user.username[0].upper() }}
+                        </div>
+                    </div>
+                </div>
+                <div class="video-overlay">
+                    <div class="participant-name">{{ user.username }}</div>
+                    <div class="participant-status">
+                        <div class="status-icon {{ 'status-muted' if participant.is_muted else '' }}" id="status-{{ user.username }}">
+                            <i class="fas {{ 'fa-microphone-slash' if participant.is_muted else 'fa-microphone' }}"></i>
+                        </div>
+                        {% if not participant.is_video_on %}
+                        <div class="status-icon status-video-off">
+                            <i class="fas fa-video-slash"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Meeting Controls -->
+    <div class="meeting-controls">
+        <div class="control-group">
+            <button class="control-btn" id="audioBtn" data-tooltip="Mute/Unmute">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <button class="control-btn" id="videoBtn" data-tooltip="Turn camera on/off">
+                <i class="fas fa-video"></i>
+            </button>
+        </div>
+
+        <div class="control-group">
+            <button class="control-btn" id="screenShareBtn" data-tooltip="Share screen">
+                <i class="fas fa-desktop"></i>
+            </button>
+            <button class="control-btn" id="participantsBtn" data-tooltip="Participants">
+                <i class="fas fa-users"></i>
+            </button>
+            <button class="control-btn" id="chatBtn" data-tooltip="Chat">
+                <i class="fas fa-comments"></i>
+            </button>
+        </div>
+
+        <div class="control-group">
+            {% if meeting.creator_id == current_user.id %}
+            <button class="control-btn" id="recordBtn" data-tooltip="Record meeting">
+                <i class="fas fa-record-vinyl"></i>
+            </button>
+            <button class="control-btn" id="settingsBtn" data-tooltip="Meeting settings">
+                <i class="fas fa-cog"></i>
+            </button>
+            {% endif %}
+            <button class="control-btn danger" id="endCallBtn" data-tooltip="Leave meeting">
+                <i class="fas fa-phone-slash"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Chat Panel -->
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+            <h6 class="fw-bold mb-0">
+                <i class="fas fa-comments me-2"></i>
+                Meeting Chat
+            </h6>
+            <button class="btn btn-sm" onclick="document.getElementById('chatPanel').classList.remove('open')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Render existing messages -->
+            {% for message, user in messages %}
+            <div class="message {{ 'own-message' if user.id == current_user.id else 'other-message' }}">
+                <div class="message-author">{{ user.username }}</div>
+                <div class="message-content">{{ message.message }}</div>
+                <div class="message-time">{{ message.timestamp.strftime('%H:%M') }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+            <button class="control-btn" id="emojiBtn" data-tooltip="Add emoji">
+                <i class="fas fa-smile"></i>
+            </button>
+            <button class="control-btn" id="sendBtn" data-tooltip="Send message">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+        
+        <!-- Emoji Picker -->
+        <div class="emoji-picker" id="emojiPicker">
+            <!-- Emojis will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Participants Panel -->
+    <div class="participants-panel" id="participantsPanel">
+        <div class="chat-header">
+            <h6 class="fw-bold mb-0">
+                <i class="fas fa-users me-2"></i>
+                Participants ({{ participants|length }})
+            </h6>
+            <button class="btn btn-sm" onclick="document.getElementById('participantsPanel').classList.remove('open')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="participants-list">
+            {% for participant, user in participants %}
+            <div class="participant-item">
+                <div class="participant-info">
+                    <div class="participant-avatar">
+                        {{ user.username[0].upper() }}
+                    </div>
+                    <div class="participant-details">
+                        <div class="participant-name">
+                            {{ user.username }}
+                            {% if user.id == current_user.id %}(You){% endif %}
+                            {% if user.id == meeting.creator_id %}
+                                <i class="fas fa-crown text-warning ms-1" title="Host"></i>
+                            {% endif %}
+                        </div>
+                        <div class="participant-status-text">
+                            {% if participant.is_muted %}
+                                <small class="text-danger">Muted</small>
+                            {% else %}
+                                <small class="text-success">Active</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                {% if meeting.creator_id == current_user.id and user.id != current_user.id %}
+                <div class="participant-actions">
+                    <button class="action-btn" onclick="adminMuteParticipant('{{ participant.id }}')" data-tooltip="Mute participant">
+                        <i class="fas fa-microphone-slash"></i>
+                    </button>
+                    <button class="action-btn" onclick="adminRemoveParticipant('{{ participant.id }}')" data-tooltip="Remove participant">
+                        <i class="fas fa-user-times"></i>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if meeting.creator_id == current_user.id %}
+        <div class="admin-controls p-3" style="border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <h6 class="fw-semibold mb-3">Host Controls</h6>
+            <div class="d-grid gap-2">
+                <button class="btn btn-outline-warning btn-sm" onclick="muteAllParticipants()">
+                    <i class="fas fa-microphone-slash me-2"></i>
+                    Mute All
+                </button>
+                <button class="btn btn-outline-success btn-sm" onclick="unmuteAllParticipants()">
+                    <i class="fas fa-microphone me-2"></i>
+                    Unmute All
+                </button>
+                <form method="POST" action="{{ url_for('end_meeting', meeting_id=meeting.meeting_id) }}" onsubmit="return confirm('Are you sure you want to end the meeting for everyone?')">
+                    <button type="submit" class="btn btn-danger btn-sm w-100">
+                        <i class="fas fa-stop me-2"></i>
+                        End Meeting for All
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Meeting Settings Modal (for hosts) -->
+    {% if meeting.creator_id == current_user.id %}
+    <div class="modal fade" id="settingsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content glass">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-cog me-2 text-gradient"></i>
+                        Meeting Settings
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-section mb-4">
+                        <h6 class="fw-semibold mb-3">Audio & Video</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="muteNewParticipants" checked>
+                            <label class="form-check-label text-secondary" for="muteNewParticipants">
+                                Mute participants when they join
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="disableVideo">
+                            <label class="form-check-label text-secondary" for="disableVideo">
+                                Turn off participant video on join
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section mb-4">
+                        <h6 class="fw-semibold mb-3">Chat & Sharing</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="enableChat" checked>
+                            <label class="form-check-label text-secondary" for="enableChat">
+                                Allow participants to chat
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="enableScreenShare" checked>
+                            <label class="form-check-label text-secondary" for="enableScreenShare">
+                                Allow participants to share screen
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h6 class="fw-semibold mb-3">Security</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="enableWaitingRoom">
+                            <label class="form-check-label text-secondary" for="enableWaitingRoom">
+                                Enable waiting room
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="lockMeeting">
+                            <label class="form-check-label text-secondary" for="lockMeeting">
+                                Lock meeting (prevent new participants)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-3d" onclick="saveSettings()">
+                        <i class="fas fa-save me-2"></i>
+                        Save Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.participant-video {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+.video-placeholder {
+    text-align: center;
+}
+
+.participant-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: white;
+    margin: 0 auto;
+}
+
+.control-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.meeting-timer {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+.participant-details {
+    flex: 1;
+}
+
+.participant-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.admin-controls {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.status-video-off {
+    background: var(--error-color);
+}
+
+.modal-content.glass {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-close {
+    filter: invert(1);
+    opacity: 0.8;
+}
+
+.settings-section {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.message.own-message {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    margin-left: 2rem;
+}
+
+.message.other-message {
+    background: rgba(255, 255, 255, 0.05);
+    margin-right: 2rem;
+}
+
+.message.own-message .message-author {
+    color: rgba(255, 255, 255, 0.9);
+}
+</style>
+
+<script>
+// Meeting timer
+let meetingStartTime = Date.now();
+let timerInterval;
+
+function updateMeetingTimer() {
+    const elapsed = Date.now() - meetingStartTime;
+    const minutes = Math.floor(elapsed / 60000);
+    const seconds = Math.floor((elapsed % 60000) / 1000);
+    document.getElementById('meetingTimer').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Start timer
+timerInterval = setInterval(updateMeetingTimer, 1000);
+
+// Admin functions
+function adminMuteParticipant(participantId) {
+    fetch('/admin/mute_participant', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `meeting_id={{ meeting.meeting_id }}&participant_id=${participantId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Participant muted', 'success');
+        } else {
+            showAlert('Failed to mute participant', 'error');
+        }
+    });
+}
+
+function adminRemoveParticipant(participantId) {
+    if (confirm('Are you sure you want to remove this participant?')) {
+        fetch('/admin/remove_participant', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `meeting_id={{ meeting.meeting_id }}&participant_id=${participantId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('Participant removed', 'success');
+            } else {
+                showAlert('Failed to remove participant', 'error');
+            }
+        });
+    }
+}
+
+function muteAllParticipants() {
+    showAlert('Mute all feature will be implemented', 'info');
+}
+
+function unmuteAllParticipants() {
+    showAlert('Unmute all feature will be implemented', 'info');
+}
+
+function saveSettings() {
+    showAlert('Settings saved successfully', 'success');
+    bootstrap.Modal.getInstance(document.getElementById('settingsModal')).hide();
+}
+
+// Settings button handler
+document.getElementById('settingsBtn')?.addEventListener('click', function() {
+    const modal = new bootstrap.Modal(document.getElementById('settingsModal'));
+    modal.show();
+});
+
+// Clean up on page unload
+window.addEventListener('beforeunload', function() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+});
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/meeting.js') }}"></script>
+{% endblock %}

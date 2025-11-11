@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Login - ZoomClone Plus{% endblock %}
+
+{% block head %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.classList.add('auth-page');
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="glass-card p-5 shadow-3d">
+                <div class="text-center mb-4">
+                    <div class="login-icon mb-3">
+                        <i class="fas fa-video fa-3x text-gradient"></i>
+                    </div>
+                    <h2 class="fw-bold mb-2">Welcome Back</h2>
+                    <p class="text-secondary">Sign in to your ZoomClone Plus account</p>
+                </div>
+
+                <form method="POST" class="login-form">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
+                        <label for="username">
+                            <i class="fas fa-user me-2"></i>Username
+                        </label>
+                    </div>
+
+                    <div class="form-floating mb-4">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                        <label for="password">
+                            <i class="fas fa-lock me-2"></i>Password
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="remember_me" name="remember_me">
+                            <label class="form-check-label text-secondary" for="remember_me">
+                                Remember me
+                            </label>
+                        </div>
+                        <a href="#" class="text-gradient text-decoration-none">
+                            Forgot password?
+                        </a>
+                    </div>
+
+                    <button type="submit" class="btn btn-3d w-100 mb-4">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Sign In
+                    </button>
+                </form>
+
+                <hr class="my-4" style="border-color: rgba(255, 255, 255, 0.1);">
+
+                <div class="text-center">
+                    <p class="text-secondary mb-3">Don't have an account?</p>
+                    <a href="{{ url_for('register') }}" class="btn btn-secondary w-100">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Create New Account
+                    </a>
+                </div>
+
+                <!-- Demo Credentials -->
+                <div class="demo-credentials mt-4 p-3" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px;">
+                    <div class="text-center">
+                        <small class="text-success fw-semibold">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Demo Credentials
+                        </small>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6 text-center">
+                            <small class="text-secondary d-block">Username</small>
+                            <small class="text-success fw-semibold">demo</small>
+                        </div>
+                        <div class="col-6 text-center">
+                            <small class="text-secondary d-block">Password</small>
+                            <small class="text-success fw-semibold">demo123</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<style>
+.login-form {
+    position: relative;
+}
+
+.login-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.demo-credentials {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(16, 185, 129, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+    }
+}
+
+.min-vh-100 {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,442 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ZoomClone Plus{% endblock %}
+
+{% block content %}
+<div class="container-fluid dashboard-container">
+    <div class="container">
+        <!-- Welcome Section -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="welcome-section glass-card p-4">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h1 class="fw-bold mb-2">
+                                Welcome back, <span class="text-gradient">{{ current_user.username }}</span>! 👋
+                            </h1>
+                            <p class="text-secondary mb-0">
+                                Ready to connect and collaborate? Start or join a meeting below.
+                            </p>
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            <div class="quick-stats">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <div class="stat-item">
+                                            <div class="stat-number text-gradient">{{ created_meetings|length }}</div>
+                                            <div class="stat-label text-secondary">Created</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="stat-item">
+                                            <div class="stat-number text-gradient">{{ participated_meetings|length }}</div>
+                                            <div class="stat-label text-secondary">Joined</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="stat-item">
+                                            <div class="stat-number text-gradient">{{ (created_meetings|length) + (participated_meetings|length) }}</div>
+                                            <div class="stat-label text-secondary">Total</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="quick-actions glass-card p-4">
+                    <h4 class="fw-bold mb-3">
+                        <i class="fas fa-rocket me-2 text-gradient"></i>
+                        Quick Actions
+                    </h4>
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <button class="btn btn-3d w-100 h-100 action-card" data-bs-toggle="modal" data-bs-target="#createMeetingModal">
+                                <div class="action-content">
+                                    <i class="fas fa-plus-circle fa-2x mb-2"></i>
+                                    <div class="action-title">Start Meeting</div>
+                                    <small class="text-secondary">Create a new meeting</small>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <button class="btn btn-secondary w-100 h-100 action-card" data-bs-toggle="modal" data-bs-target="#joinMeetingModal">
+                                <div class="action-content">
+                                    <i class="fas fa-sign-in-alt fa-2x mb-2"></i>
+                                    <div class="action-title">Join Meeting</div>
+                                    <small class="text-secondary">Enter meeting ID</small>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <button class="btn w-100 h-100 action-card" style="background: linear-gradient(135deg, var(--warning-color) 0%, #f59e0b 100%);" onclick="scheduleInstantMeeting()">
+                                <div class="action-content">
+                                    <i class="fas fa-calendar-plus fa-2x mb-2"></i>
+                                    <div class="action-title">Schedule</div>
+                                    <small class="text-secondary">Plan for later</small>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <button class="btn w-100 h-100 action-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);" onclick="showMeetingHistory()">
+                                <div class="action-content">
+                                    <i class="fas fa-history fa-2x mb-2"></i>
+                                    <div class="action-title">History</div>
+                                    <small class="text-secondary">Past meetings</small>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Meetings -->
+        <div class="row">
+            <!-- Created Meetings -->
+            <div class="col-lg-6 mb-4">
+                <div class="meetings-section glass-card p-4 h-100">
+                    <div class="section-header d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="fas fa-users-cog me-2 text-gradient"></i>
+                            Your Meetings
+                        </h5>
+                        <span class="badge" style="background: var(--primary-color);">{{ created_meetings|length }}</span>
+                    </div>
+                    
+                    {% if created_meetings %}
+                        <div class="meetings-list">
+                            {% for meeting in created_meetings %}
+                            <div class="meeting-card glass-card mb-3 p-3 hover-lift">
+                                <div class="meeting-header d-flex justify-content-between align-items-start mb-2">
+                                    <div class="meeting-info">
+                                        <h6 class="fw-bold mb-1">{{ meeting.title }}</h6>
+                                        <small class="text-secondary">
+                                            Created {{ meeting.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                                        </small>
+                                    </div>
+                                    <div class="meeting-status">
+                                        <span class="badge bg-success">Active</span>
+                                    </div>
+                                </div>
+                                
+                                {% if meeting.description %}
+                                <p class="meeting-description text-secondary mb-2">{{ meeting.description }}</p>
+                                {% endif %}
+                                
+                                <div class="meeting-id-section mb-3 p-2" style="background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                                    <small class="text-secondary d-block">Meeting ID</small>
+                                    <code class="meeting-id">{{ meeting.meeting_id }}</code>
+                                    <button class="btn btn-sm ms-2" onclick="copyMeetingLink('{{ meeting.meeting_id }}')" data-tooltip="Copy meeting link">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="meeting-actions d-flex gap-2">
+                                    <a href="{{ url_for('meeting_room', meeting_id=meeting.meeting_id) }}" class="btn btn-3d btn-sm flex-grow-1">
+                                        <i class="fas fa-video me-1"></i>
+                                        Start
+                                    </a>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="shareMetingLink('{{ meeting.meeting_id }}')" data-tooltip="Share link">
+                                        <i class="fas fa-share-alt"></i>
+                                    </button>
+                                    <form method="POST" action="{{ url_for('end_meeting', meeting_id=meeting.meeting_id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to end this meeting?')">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" data-tooltip="End meeting">
+                                            <i class="fas fa-stop"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state text-center py-4">
+                            <i class="fas fa-calendar-plus fa-3x text-secondary mb-3"></i>
+                            <h6 class="text-secondary">No meetings created yet</h6>
+                            <p class="text-secondary mb-3">Start your first meeting to connect with others</p>
+                            <button class="btn btn-3d" data-bs-toggle="modal" data-bs-target="#createMeetingModal">
+                                <i class="fas fa-plus me-2"></i>
+                                Create Meeting
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Joined Meetings -->
+            <div class="col-lg-6 mb-4">
+                <div class="meetings-section glass-card p-4 h-100">
+                    <div class="section-header d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="fas fa-users me-2 text-gradient"></i>
+                            Joined Meetings
+                        </h5>
+                        <span class="badge" style="background: var(--secondary-color);">{{ participated_meetings|length }}</span>
+                    </div>
+                    
+                    {% if participated_meetings %}
+                        <div class="meetings-list">
+                            {% for meeting in participated_meetings %}
+                            <div class="meeting-card glass-card mb-3 p-3 hover-lift">
+                                <div class="meeting-header d-flex justify-content-between align-items-start mb-2">
+                                    <div class="meeting-info">
+                                        <h6 class="fw-bold mb-1">{{ meeting.title }}</h6>
+                                        <small class="text-secondary">
+                                            by {{ meeting.creator.username }} • {{ meeting.created_at.strftime('%b %d, %Y') }}
+                                        </small>
+                                    </div>
+                                    <div class="meeting-status">
+                                        <span class="badge bg-success">Active</span>
+                                    </div>
+                                </div>
+                                
+                                {% if meeting.description %}
+                                <p class="meeting-description text-secondary mb-2">{{ meeting.description }}</p>
+                                {% endif %}
+                                
+                                <div class="meeting-actions d-flex gap-2">
+                                    <a href="{{ url_for('meeting_room', meeting_id=meeting.meeting_id) }}" class="btn btn-secondary btn-sm flex-grow-1">
+                                        <i class="fas fa-video me-1"></i>
+                                        Join
+                                    </a>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="copyMeetingLink('{{ meeting.meeting_id }}')" data-tooltip="Copy link">
+                                        <i class="fas fa-link"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state text-center py-4">
+                            <i class="fas fa-user-friends fa-3x text-secondary mb-3"></i>
+                            <h6 class="text-secondary">No meetings joined yet</h6>
+                            <p class="text-secondary mb-3">Join a meeting using a meeting ID</p>
+                            <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#joinMeetingModal">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                Join Meeting
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Meeting Modal -->
+<div class="modal fade" id="createMeetingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-plus-circle me-2 text-gradient"></i>
+                    Create New Meeting
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('create_meeting') }}">
+                <div class="modal-body">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="title" name="title" placeholder="Meeting Title" required>
+                        <label for="title">
+                            <i class="fas fa-heading me-2"></i>Meeting Title
+                        </label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <textarea class="form-control" id="description" name="description" placeholder="Description (optional)" style="height: 100px;"></textarea>
+                        <label for="description">
+                            <i class="fas fa-align-left me-2"></i>Description (optional)
+                        </label>
+                    </div>
+                    <div class="meeting-settings">
+                        <h6 class="fw-semibold mb-3">Meeting Settings</h6>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="enableWaitingRoom" name="enableWaitingRoom">
+                            <label class="form-check-label text-secondary" for="enableWaitingRoom">
+                                Enable waiting room
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="muteOnEntry" name="muteOnEntry" checked>
+                            <label class="form-check-label text-secondary" for="muteOnEntry">
+                                Mute participants on entry
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="recordMeeting" name="recordMeeting">
+                            <label class="form-check-label text-secondary" for="recordMeeting">
+                                Auto-record meeting
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-3d">
+                        <i class="fas fa-rocket me-2"></i>
+                        Create & Start
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Join Meeting Modal -->
+<div class="modal fade" id="joinMeetingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-sign-in-alt me-2 text-gradient"></i>
+                    Join Meeting
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('join_meeting') }}">
+                <div class="modal-body">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="meeting_id" name="meeting_id" placeholder="Meeting ID" required>
+                        <label for="meeting_id">
+                            <i class="fas fa-key me-2"></i>Meeting ID
+                        </label>
+                    </div>
+                    <div class="join-info p-3" style="background: rgba(37, 99, 235, 0.1); border-radius: 12px; border: 1px solid rgba(37, 99, 235, 0.2);">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            <small class="text-secondary">
+                                Enter the meeting ID provided by the meeting host
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fas fa-video me-2"></i>
+                        Join Meeting
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.action-card {
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.action-card:hover {
+    transform: translateY(-5px) scale(1.02);
+}
+
+.action-content {
+    text-align: center;
+}
+
+.action-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.meeting-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.meeting-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.meeting-id {
+    background: var(--surface);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    color: var(--text-primary);
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.meetings-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.meetings-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.meetings-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.meetings-list::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.empty-state {
+    padding: 3rem 1rem;
+}
+
+.modal-content.glass {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-close {
+    filter: invert(1);
+    opacity: 0.8;
+}
+
+.btn-close:hover {
+    opacity: 1;
+}
+</style>
+
+<script>
+function copyMeetingLink(meetingId) {
+    const link = `${window.location.origin}/meeting/${meetingId}`;
+    copyToClipboard(link);
+}
+
+function shareMetingLink(meetingId) {
+    const link = `${window.location.origin}/meeting/${meetingId}`;
+    if (navigator.share) {
+        navigator.share({
+            title: 'Join my meeting',
+            text: 'Join my ZoomClone Plus meeting',
+            url: link
+        });
+    } else {
+        copyToClipboard(link);
+    }
+}
+
+function scheduleInstantMeeting() {
+    showAlert('Meeting scheduling feature coming soon!', 'info');
+}
+
+function showMeetingHistory() {
+    showAlert('Meeting history feature coming soon!', 'info');
+}
+</script>
+{% endblock %}

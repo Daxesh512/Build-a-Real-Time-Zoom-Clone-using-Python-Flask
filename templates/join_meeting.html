@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Join Meeting - ZoomClone Plus{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-lg-5 col-md-7 col-sm-9">
+            <div class="glass-card p-5 shadow-3d">
+                <div class="text-center mb-4">
+                    <div class="join-icon mb-3">
+                        <i class="fas fa-sign-in-alt fa-3x text-gradient"></i>
+                    </div>
+                    <h2 class="fw-bold mb-2">Join Meeting</h2>
+                    <p class="text-secondary">Enter the Meeting ID to join the conference</p>
+                </div>
+
+                <form method="POST" class="join-form">
+                    <div class="form-floating mb-4">
+                        <input type="text" class="form-control" id="meeting_id" name="meeting_id" placeholder="Meeting ID" required>
+                        <label for="meeting_id">
+                            <i class="fas fa-key me-2"></i>Meeting ID
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-3d w-100 mb-4">
+                        <i class="fas fa-video me-2"></i>
+                        Join Meeting
+                    </button>
+                </form>
+
+                <hr class="my-4" style="border-color: rgba(255, 255, 255, 0.1);">
+
+                <div class="text-center">
+                    <p class="text-secondary mb-3">Don't have a meeting to join?</p>
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary w-100">
+                            <i class="fas fa-th-large me-2"></i>
+                            Go to Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-secondary w-100 mb-2">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Sign In
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Create Account
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Meeting ID Format Info -->
+                <div class="meeting-info mt-4 p-3" style="background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: 12px;">
+                    <div class="text-center">
+                        <small class="text-primary fw-semibold">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Meeting ID Format
+                        </small>
+                    </div>
+                    <div class="mt-2 text-center">
+                        <small class="text-secondary">
+                            Enter the Meeting ID shared by the host<br>
+                            Example: <code>abc123de-4567-8910-fghi-jklmnopqrstu</code>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.join-form {
+    position: relative;
+}
+
+.join-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+    animation: float 6s ease-in-out infinite;
+}
+
+.meeting-info {
+    animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(37, 99, 235, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+    }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.min-vh-100 {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    color: var(--primary-color);
+}
+</style>
+{% endblock %}
